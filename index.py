@@ -8,7 +8,7 @@ from tracker import Tracker
 model = YOLO('yolov8n.pt')
 
 # Define the video path
-video_path = r'E:\Intern_FOE\video.mp4'
+video_path = r'E:\Intern_FOE\TrafficMonitor\video.mp4'
 
 # Open video capture
 cap = cv2.VideoCapture(video_path)
@@ -26,8 +26,8 @@ entry_count, exit_count, parked_count = 0, 0, 0
 vehicle_classes = [2, 3, 5, 7, 9]  # Car, Motorcycle, Bus, Truck, Bicycle
 
 # Define the angled lines for counting vehicles (entry/exit lines)
-line_start_red, line_end_red = (100,300),(500,300)  # Red line (Exit)
-line_start_blue, line_end_blue = (1,350),(450,350)  # Blue line (Entry)
+line_start_red, line_end_red = (10,250),(1100,250)  # Red line (Exit)
+line_start_blue, line_end_blue = (10,300),(1100,300)  # Blue line (Entry)
 
 # Initialize tracking variables
 exit_tracking, entry_tracking = {}, {}
