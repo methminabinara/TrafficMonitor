@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+*.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and output
+*.log
+*.out
+*.err
+
+# Video and large media files
+*.mp4
+*.avi
+*.mov
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif
+
+# YOLO model files
+*.weights
+*.onnx
+
+# Python cache files
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+
+# Dataset and annotations
+dataset/
+annotations/
+
+# IDE files
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
