@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import pandas as pd
 from ultralytics import YOLO
 from tracker import Tracker
 
@@ -20,19 +19,16 @@ if not cap.isOpened():
 
 # Initialize tracker and counts
 tracker = Tracker()
-entry_count, exit_count, parked_count = 0, 0, 0
+entry_count = 0
 
 # Class IDs for vehicles in COCO dataset
 vehicle_classes = [2, 3, 5, 7, 9]  # Car, Motorcycle, Bus, Truck, Bicycle
 
-# Define the angled lines for counting vehicles (entry/exit lines)
-line_start_red, line_end_red = (10,250),(1100,250)  # Red line (Exit)
-line_start_blue, line_end_blue = (10,300),(1100,300)  # Blue line (Entry)
+# Define the entry line for counting vehicles
+line_start, line_end = (10, 300), (1100, 300)  # Blue line (Entry)
 
-# Initialize tracking variables
-exit_tracking, entry_tracking = {}, {}
-exit_vehicles, entry_vehicles = [], []
-frame_count = 0
+# Tracking dictionary
+entry_tracking = {}
 
 # Process video frame by frame
 while cap.isOpened():
@@ -40,7 +36,6 @@ while cap.isOpened():
     if not ret:
         break
 
-    frame_count += 1
     frame = cv2.resize(frame, (1020, 500))
 
     # Perform YOLOv8 inference on the frame
@@ -59,11 +54,10 @@ while cap.isOpened():
     # Update tracker and get tracked boxes with IDs
     tracked_boxes = tracker.update(vehicle_boxes)
 
-    # Draw entry/exit lines
-    cv2.line(frame, line_start_red, line_end_red, (0, 0, 255), 3)  # Red for exit
-    cv2.line(frame, line_start_blue, line_end_blue, (255, 0, 0), 3)  # Blue for entry
+    # Draw the entry line
+    cv2.line(frame, line_start, line_end, (255, 0, 0), 3)  # Blue for entry
 
-    # Track each vehicle and count based on movement direction
+    # Track each vehicle and count based on crossing the line
     for bbox in tracked_boxes:
         x3, y3, x4, y4, vehicle_id = bbox
         cx, cy = (x3 + x4) // 2, (y3 + y4) // 2
@@ -71,34 +65,17 @@ while cap.isOpened():
         # Define offset for movement tolerance
         offset = 7
 
-        # Condition for vehicles moving upwards (entry)
-        if line_start_blue[1] < (cy + offset) and line_start_blue[1] > (cy - offset):
-            entry_tracking[vehicle_id] = cy
-        if vehicle_id in entry_tracking:
-            if line_start_red[1] < (cy + offset) and line_start_red[1] > (cy - offset):
-                cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
+        # Condition for vehicles crossing the entry line
+        if line_start[1] < (cy + offset) and line_start[1] > (cy - offset):
+            if vehicle_id not in entry_tracking:
+                entry_tracking[vehicle_id] = cy
+                entry_count += 1
+                cv2.circle(frame, (cx, cy), 4, (0, 255, 0), -1)
                 cv2.putText(frame, str(vehicle_id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-                entry_vehicles.append(vehicle_id)
-                del entry_tracking[vehicle_id]
 
-        # Condition for vehicles moving downwards (exit)
-        if line_start_red[1] < (cy + offset) and line_start_red[1] > (cy - offset):
-            exit_tracking[vehicle_id] = cy
-        if vehicle_id in exit_tracking:
-            if line_start_blue[1] < (cy + offset) and line_start_blue[1] > (cy - offset):
-                cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
-                cv2.putText(frame, str(vehicle_id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-                exit_vehicles.append(vehicle_id)
-                del exit_tracking[vehicle_id]
-
-    # Display entry, exit, and parked counts on the frame
-    exits = len(set(exit_vehicles))
-    entries = len(set(entry_vehicles))
-
-    # Make text visible by adding a solid background behind text
-    cv2.rectangle(frame, (10, 10), (200, 80), (0, 0, 0), -1)  # Black background for text
-    cv2.putText(frame, f'Entries: {entries}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-    cv2.putText(frame, f'Exits: {exits}', (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+    # Display entry count on the frame
+    cv2.rectangle(frame, (10, 10), (200, 60), (0, 0, 0), -1)  # Black background for text
+    cv2.putText(frame, f'Entries: {entry_count}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
     # Display the frame with tracking annotations
     cv2.imshow("YOLOv8 Vehicle Detection with Tracking", frame)
@@ -111,5 +88,4 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()
 
-print(f"Total vehicles entering: {entries}")
-print(f"Total vehicles exiting: {exits}")
+print(f"Total vehicles entering: {entry_count}")
