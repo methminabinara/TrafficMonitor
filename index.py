@@ -25,7 +25,7 @@ entry_count = 0
 vehicle_classes = [2, 3, 5, 7, 9]  # Car, Motorcycle, Bus, Truck, Bicycle
 
 # Define the entry line for counting vehicles
-line_start, line_end = (10, 300), (1100, 300)  # Blue line (Entry)
+line_start, line_end = (350, 200), (650, 200)  # Blue line (Entry)
 
 # Tracking dictionary
 entry_tracking = {}
@@ -66,12 +66,17 @@ while cap.isOpened():
         offset = 7
 
         # Condition for vehicles crossing the entry line
-        if line_start[1] < (cy + offset) and line_start[1] > (cy - offset):
+        # Condition for vehicles crossing the entry line
+        if (
+            line_start[1] - offset <= cy <= line_start[1] + offset and
+            line_start[0] <= cx <= line_end[0]
+        ):
             if vehicle_id not in entry_tracking:
                 entry_tracking[vehicle_id] = cy
                 entry_count += 1
                 cv2.circle(frame, (cx, cy), 4, (0, 255, 0), -1)
                 cv2.putText(frame, str(vehicle_id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+
 
     # Display entry count on the frame
     cv2.rectangle(frame, (10, 10), (200, 60), (0, 0, 0), -1)  # Black background for text
