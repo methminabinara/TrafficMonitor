@@ -33,7 +33,7 @@ left_line_start, left_line_end = (150, 100), (150, 600)
 right_line_start, right_line_end = (850, 100), (850, 600)
 
 # Main Horizontal Road Line (Red)
-main_line_start, main_line_end = (350, 200), (650, 200)
+main_line_start, main_line_end = (380, 150), (530, 150)
 
 while cap.isOpened():
     ret, frame = cap.read()
