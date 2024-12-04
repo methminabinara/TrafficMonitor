@@ -27,13 +27,13 @@ vehicle_classes = [2, 3, 5, 7, 9]
 offset = 7  # Tolerance
 
 # Vertical Left Entry Line (Blue)
-left_line_start, left_line_end = (150, 100), (150, 600)
+left_line_start, left_line_end = (150, 250), (150, 600)
 
 # Vertical Right Entry Line (Green)
-right_line_start, right_line_end = (850, 100), (850, 600)
+right_line_start, right_line_end = (900, 250), (900, 600)
 
 # Main Horizontal Road Line (Red)
-main_line_start, main_line_end = (380, 150), (530, 150)
+main_line_start, main_line_end = (420, 160), (540, 160)
 
 while cap.isOpened():
     ret, frame = cap.read()
