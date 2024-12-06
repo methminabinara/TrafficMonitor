@@ -109,6 +109,17 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# Save the output counts to a text file
+output_file = "vehicle_counts.txt"
+with open(output_file, "w") as file:
+    file.write(f"Total vehicles at Maligawa End: {maligawa_end_count}\n")
+    file.write(f"Total vehicles at Dalada Veediya End: {dalada_veediya_end_count}\n")
+    file.write(f"Total vehicles on Left Lane: {left_lane_count}\n")
+    file.write(f"Total vehicles on Right Lane: {right_lane_count}\n")
+    file.write(f"Total vehicles on KCC Road: {kcc_road_count}\n")
+
+print(f"Vehicle counts saved to {output_file}")
+
 cap.release()
 cv2.destroyAllWindows()
 
