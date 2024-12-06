@@ -3,8 +3,10 @@ import numpy as np
 from ultralytics import YOLO
 from tracker import Tracker
 
+# Load YOLOv8 model
 model = YOLO('yolov8n.pt')
 
+# Video input path
 video_path = r'E:\Intern_FOE\TrafficMonitor\video.mp4'
 cap = cv2.VideoCapture(video_path)
 
@@ -12,23 +14,27 @@ if not cap.isOpened():
     print(f"Error: Could not open video {video_path}")
     exit()
 
+# Initialize Tracker
 tracker = Tracker()
 
+# Counters
 maligawa_end_count = 0
 dalada_veediya_end_count = 0
 left_lane_count = 0
 right_lane_count = 0
 kcc_road_count = 0  # Counter for KCC Road
 
+# Sets for unique vehicle IDs
 maligawa_end_ids = set()
 dalada_veediya_end_ids = set()
 left_lane_ids = set()
 right_lane_ids = set()
 kcc_road_ids = set()  # Set for KCC Road
 
-vehicle_classes = [2, 3, 5, 7, 9]
+# Vehicle class IDs
+vehicle_classes = [2, 3, 5, 7, 9]  # Exclude pedestrians (class 0)
 
-offset = 7  # Tolerance
+offset = 7  # Tolerance for line crossing
 
 # Line coordinates
 maligawa_line_start, maligawa_line_end = (150, 250), (150, 600)
@@ -50,12 +56,12 @@ while cap.isOpened():
         for det in result.boxes:
             box = det.xyxy[0].cpu().numpy().astype(int)
             class_id = int(det.cls[0].cpu().numpy())
-            if class_id in vehicle_classes:
+            if class_id in vehicle_classes:  # Filter only vehicles
                 vehicle_boxes.append(box)
 
     tracked_boxes = tracker.update(vehicle_boxes)
 
-    # Draw all lines
+    # Draw lines
     cv2.line(frame, maligawa_line_start, maligawa_line_end, (255, 0, 0), 3)  # Blue
     cv2.line(frame, dalada_line_start, dalada_line_end, (0, 255, 0), 3)  # Green
     cv2.line(frame, left_lane_line_start, left_lane_line_end, (0, 0, 255), 3)  # Red
