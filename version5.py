@@ -41,7 +41,7 @@ maligawa_line_start, maligawa_line_end = (150, 250), (150, 600)
 dalada_line_start, dalada_line_end = (900, 250), (900, 600)
 left_lane_line_start, left_lane_line_end = (420, 160), (540, 160)
 right_lane_start, right_lane_end = (550, 150), (650, 150)
-kcc_road_start, kcc_road_end = (660, 190), (780, 190)  # KCC Road line
+kcc_road_start, kcc_road_end = (660, 220), (830, 220)  # KCC Road line
 
 while cap.isOpened():
     ret, frame = cap.read()

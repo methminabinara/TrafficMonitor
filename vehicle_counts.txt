@@ -1,5 +1,5 @@
-Total vehicles at Maligawa End: 5
-Total vehicles at Dalada Veediya End: 4
-Total vehicles on Left Lane: 5
-Total vehicles on Right Lane: 3
-Total vehicles on KCC Road: 23
+Total vehicles at Maligawa End: 0
+Total vehicles at Dalada Veediya End: 0
+Total vehicles on Left Lane: 0
+Total vehicles on Right Lane: 2
+Total vehicles on KCC Road: 1
