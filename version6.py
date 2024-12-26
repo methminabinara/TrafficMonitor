@@ -22,17 +22,16 @@ maligawa_end_count = 0
 dalada_veediya_end_count = 0
 left_lane_count = 0
 right_lane_count = 0
-kcc_road_count = 0  # Counter for KCC Road
+kcc_road_count = 0
 
-# Sets for unique vehicle IDs
-maligawa_end_ids = set()
-dalada_veediya_end_ids = set()
-left_lane_ids = set()
-right_lane_ids = set()
-kcc_road_ids = set()  # Set for KCC Road
+# Vehicle mapping for entry and exit points
+entry_exit_map = {
+    "Maligawa": {"entry": set(), "exit": {"Left Lane": 0, "Right Lane": 0, "KCC Road": 0}},
+    "Dalada Veediya": {"entry": set(), "exit": {"Left Lane": 0, "Right Lane": 0, "KCC Road": 0}},
+}
 
-# Vehicle class IDs
-vehicle_classes = [2, 3, 5, 7, 9]  # Exclude pedestrians (class 0)
+# Vehicle class IDs (e.g., cars, buses, motorcycles, etc.)
+vehicle_classes = [2, 3, 5, 7, 9]
 
 offset = 7  # Tolerance for line crossing
 
@@ -41,7 +40,10 @@ maligawa_line_start, maligawa_line_end = (150, 250), (150, 600)
 dalada_line_start, dalada_line_end = (900, 250), (900, 600)
 left_lane_line_start, left_lane_line_end = (420, 160), (540, 160)
 right_lane_start, right_lane_end = (550, 150), (650, 150)
-kcc_road_start, kcc_road_end = (720, 220), (830, 220)  # KCC Road line
+kcc_road_start, kcc_road_end = (720, 220), (830, 220)
+
+# Per-frame tracking of vehicle positions
+vehicle_positions = {}
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -56,7 +58,7 @@ while cap.isOpened():
         for det in result.boxes:
             box = det.xyxy[0].cpu().numpy().astype(int)
             class_id = int(det.cls[0].cpu().numpy())
-            if class_id in vehicle_classes:  # Filter only vehicles
+            if class_id in vehicle_classes:
                 vehicle_boxes.append(box)
 
     tracked_boxes = tracker.update(vehicle_boxes)
@@ -72,38 +74,52 @@ while cap.isOpened():
         x3, y3, x4, y4, vehicle_id = bbox
         cx, cy = (x3 + x4) // 2, (y3 + y4) // 2
 
-        # Maligawa End (Vertical)
+        if vehicle_id not in vehicle_positions:
+            vehicle_positions[vehicle_id] = {"entry": None, "exit": None}
+
+        # Check entry points
         if maligawa_line_start[0] - offset <= cx <= maligawa_line_start[0] + offset and maligawa_line_start[1] <= cy <= maligawa_line_end[1]:
-            if vehicle_id not in maligawa_end_ids:
-                maligawa_end_ids.add(vehicle_id)
+            if vehicle_positions[vehicle_id]["entry"] is None:
+                vehicle_positions[vehicle_id]["entry"] = "Maligawa"
+                entry_exit_map["Maligawa"]["entry"].add(vehicle_id)
                 maligawa_end_count += 1
 
-        # Dalada Veediya End (Vertical)
         if dalada_line_start[0] - offset <= cx <= dalada_line_start[0] + offset and dalada_line_start[1] <= cy <= dalada_line_end[1]:
-            if vehicle_id not in dalada_veediya_end_ids:
-                dalada_veediya_end_ids.add(vehicle_id)
+            if vehicle_positions[vehicle_id]["entry"] is None:
+                vehicle_positions[vehicle_id]["entry"] = "Dalada Veediya"
+                entry_exit_map["Dalada Veediya"]["entry"].add(vehicle_id)
                 dalada_veediya_end_count += 1
 
-        # Left Lane (Horizontal)
+        # Check exit points
         if left_lane_line_start[1] - offset <= cy <= left_lane_line_start[1] + offset and left_lane_line_start[0] <= cx <= left_lane_line_end[0]:
-            if vehicle_id not in left_lane_ids:
-                left_lane_ids.add(vehicle_id)
+            if vehicle_positions[vehicle_id]["exit"] is None:
+                vehicle_positions[vehicle_id]["exit"] = "Left Lane"
+                if vehicle_positions[vehicle_id]["entry"] == "Maligawa":
+                    entry_exit_map["Maligawa"]["exit"]["Left Lane"] += 1
+                if vehicle_positions[vehicle_id]["entry"] == "Dalada Veediya":
+                    entry_exit_map["Dalada Veediya"]["exit"]["Left Lane"] += 1
                 left_lane_count += 1
 
-        # Right Lane (Horizontal)
         if right_lane_start[1] - offset <= cy <= right_lane_start[1] + offset and right_lane_start[0] <= cx <= right_lane_end[0]:
-            if vehicle_id not in right_lane_ids:
-                right_lane_ids.add(vehicle_id)
+            if vehicle_positions[vehicle_id]["exit"] is None:
+                vehicle_positions[vehicle_id]["exit"] = "Right Lane"
+                if vehicle_positions[vehicle_id]["entry"] == "Maligawa":
+                    entry_exit_map["Maligawa"]["exit"]["Right Lane"] += 1
+                if vehicle_positions[vehicle_id]["entry"] == "Dalada Veediya":
+                    entry_exit_map["Dalada Veediya"]["exit"]["Right Lane"] += 1
                 right_lane_count += 1
 
-        # KCC Road (Horizontal)
         if kcc_road_start[1] - offset <= cy <= kcc_road_start[1] + offset and kcc_road_start[0] <= cx <= kcc_road_end[0]:
-            if vehicle_id not in kcc_road_ids:
-                kcc_road_ids.add(vehicle_id)
+            if vehicle_positions[vehicle_id]["exit"] is None:
+                vehicle_positions[vehicle_id]["exit"] = "KCC Road"
+                if vehicle_positions[vehicle_id]["entry"] == "Maligawa":
+                    entry_exit_map["Maligawa"]["exit"]["KCC Road"] += 1
+                if vehicle_positions[vehicle_id]["entry"] == "Dalada Veediya":
+                    entry_exit_map["Dalada Veediya"]["exit"]["KCC Road"] += 1
                 kcc_road_count += 1
 
     # Display counts
-    cv2.rectangle(frame, (10, 10), (300, 180), (0, 0, 0), -1)
+    cv2.rectangle(frame, (10, 10), (400, 200), (0, 0, 0), -1)
     cv2.putText(frame, f'Maligawa End: {maligawa_end_count}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     cv2.putText(frame, f'Dalada Veediya End: {dalada_veediya_end_count}', (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     cv2.putText(frame, f'Left Lane: {left_lane_count}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
@@ -115,22 +131,17 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Save the output counts to a text file
-output_file = "vehicle_counts.txt"
+# Save results
+output_file = "vehicle_entry_exit_map.txt"
 with open(output_file, "w") as file:
-    file.write(f"Total vehicles at Maligawa End: {maligawa_end_count}\n")
-    file.write(f"Total vehicles at Dalada Veediya End: {dalada_veediya_end_count}\n")
-    file.write(f"Total vehicles on Left Lane: {left_lane_count}\n")
-    file.write(f"Total vehicles on Right Lane: {right_lane_count}\n")
-    file.write(f"Total vehicles on KCC Road: {kcc_road_count}\n")
+    for entry_point, data in entry_exit_map.items():
+        file.write(f"{entry_point}:\n")
+        file.write(f"  Entry count: {len(data['entry'])}\n")
+        for exit_point, count in data["exit"].items():
+            file.write(f"  Vehicles to {exit_point}: {count}\n")
+        file.write("\n")
 
-print(f"Vehicle counts saved to {output_file}")
+print(f"Vehicle entry and exit data saved to {output_file}")
 
 cap.release()
 cv2.destroyAllWindows()
-
-print(f"Total vehicles at Maligawa End: {maligawa_end_count}")
-print(f"Total vehicles at Dalada Veediya End: {dalada_veediya_end_count}")
-print(f"Total vehicles on Left Lane: {left_lane_count}")
-print(f"Total vehicles on Right Lane: {right_lane_count}")
-print(f"Total vehicles on KCC Road: {kcc_road_count}")

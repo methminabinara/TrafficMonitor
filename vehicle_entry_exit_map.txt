@@ -1,0 +1,12 @@
+Maligawa:
+  Entry count: 6
+  Vehicles to Left Lane: 1
+  Vehicles to Right Lane: 0
+  Vehicles to KCC Road: 0
+
+Dalada Veediya:
+  Entry count: 4
+  Vehicles to Left Lane: 1
+  Vehicles to Right Lane: 0
+  Vehicles to KCC Road: 0
+
