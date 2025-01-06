@@ -1,5 +1,5 @@
 Maligawa:
-  Entry count: 2
+  Entry count: 3
   Vehicles to Left Lane: 1
   Vehicles to Right Lane: 0
   Vehicles to KCC Road: 0

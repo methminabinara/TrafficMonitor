@@ -33,8 +33,7 @@ entry_exit_map = {
 # Vehicle class IDs (e.g., cars, buses, motorcycles, etc.)
 vehicle_classes = [2, 3, 5, 7, 9]
 
-# offset = 7  # Tolerance for line crossing
-offset = 10  # Increase the offset slightly (e.g., 10 or higher) to expand the detection range.
+offset = 7  # Tolerance for line crossing
 
 # Line coordinates
 maligawa_line_start, maligawa_line_end = (150, 250), (150, 600)
@@ -52,9 +51,7 @@ while cap.isOpened():
         break
 
     frame = cv2.resize(frame, (1020, 500))
-    # results = model.predict(frame, stream=True)
-    results = model.predict(frame, stream=True, conf=0.25)  # Lower confidence threshold (default: 0.5)
-
+    results = model.predict(frame, stream=True)
 
     vehicle_boxes = []
     for result in results:
@@ -76,10 +73,6 @@ while cap.isOpened():
     for bbox in tracked_boxes:
         x3, y3, x4, y4, vehicle_id = bbox
         cx, cy = (x3 + x4) // 2, (y3 + y4) // 2
-
-        # Draw the center point for debugging
-        cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)  # Green dot
-        cv2.putText(frame, f'ID: {vehicle_id}', (cx, cy - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         if vehicle_id not in vehicle_positions:
             vehicle_positions[vehicle_id] = {"entry": None, "exit": None}
@@ -152,6 +145,5 @@ with open(output_file, "w") as file:
 
 print(f"Vehicle entry and exit data saved to {output_file}")
 
-# Release resources
 cap.release()
 cv2.destroyAllWindows()
