@@ -55,11 +55,7 @@ while cap.isOpened():
         break
 
     frame = cv2.resize(frame, (1020, 500))
-    results = model.track(frame, stream=True,persist=True)
-
-    # confidence_threshold = 0.3
-    # filtered_results = results[0].boxes.data  # Access detections
-    # filtered_results = filtered_results[filtered_results[:, 4] > confidence_threshold]
+    results = model.track(frame, stream=True, persist=True)
 
     vehicle_boxes = []
     for result in results:
@@ -132,7 +128,7 @@ while cap.isOpened():
         cv2.putText(frame, f"ID: {vehicle_id}", (x3, y3 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     # Display counts
-    cv2.rectangle(frame, (10, 10), (250, 125), (0, 0, 0), -1)
+    cv2.rectangle(frame, (10, 10), (300, 150), (0, 0, 0), -1)
     cv2.putText(frame, f'Maligawa to Left Lane: {maligawa_to_left_lane}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     cv2.putText(frame, f'Maligawa to Right Lane: {maligawa_to_right_lane}', (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     cv2.putText(frame, f'Maligawa to KCC Road: {maligawa_to_kcc_road}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
@@ -142,7 +138,8 @@ while cap.isOpened():
 
     cv2.imshow("YOLOv8 Vehicle Detection", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # Add delay to slow down the video playback
+    if cv2.waitKey(100) & 0xFF == ord('q'):  # 100ms delay
         break
 
 # Save results
