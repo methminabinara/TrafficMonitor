@@ -1,6 +1,6 @@
-Maligawa to Left Lane: 1
+Maligawa to Left Lane: 2
 Maligawa to Right Lane: 0
 Maligawa to KCC Road: 0
-Dalada to Left Lane: 0
+Dalada to Left Lane: 1
 Dalada to Right Lane: 0
 Dalada to KCC Road: 0

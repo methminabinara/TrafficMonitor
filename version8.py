@@ -5,7 +5,7 @@ from ultralytics import YOLO
 from tracker import Tracker
 
 # Load YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = YOLO('yolo11n.pt')
 
 # Video input path
 video_path = r'E:\Intern_FOE\TrafficMonitor\video.mp4'
