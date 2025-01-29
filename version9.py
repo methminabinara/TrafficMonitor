@@ -5,7 +5,7 @@ from ultralytics import YOLO
 from tracker import Tracker
 
 # Load YOLOv8 model
-model = YOLO('yolo11n.pt')
+model = YOLO('yolov8n.pt')
 
 # Video input path
 video_path = r'E:\Intern_FOE\TrafficMonitor\video.mp4'
@@ -14,18 +14,6 @@ cap = cv2.VideoCapture(video_path)
 if not cap.isOpened():
     print(f"Error: Could not open video {video_path}")
     exit()
-
-# Get video frame rate
-fps = cap.get(cv2.CAP_PROP_FPS)
-
-# Calculate start and end frame numbers
-start_time = 92  # 1:32 in seconds
-end_time = 212  # 3:32 in seconds
-start_frame = int(start_time * fps)
-end_frame = int(end_time * fps)
-
-# Set the video to start at the start frame
-cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
 # Initialize Tracker
 tracker = Tracker()
@@ -63,7 +51,7 @@ track_history = defaultdict(lambda: [])
 
 while cap.isOpened():
     ret, frame = cap.read()
-    if not ret or cap.get(cv2.CAP_PROP_POS_FRAMES) > end_frame:
+    if not ret:
         break
 
     frame = cv2.resize(frame, (1020, 500))
@@ -150,7 +138,8 @@ while cap.isOpened():
 
     cv2.imshow("YOLOv8 Vehicle Detection", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # Add delay to slow down the video playback
+    if cv2.waitKey(1) & 0xFF == ord('q'):  # 100ms delay
         break
 
 # Save results
