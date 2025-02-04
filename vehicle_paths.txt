@@ -1,0 +1,6 @@
+Maligawa End to KCC Road: 30 vehicles
+Maligawa End to Left Lane: 13 vehicles
+Maligawa End to Right Lane: 128 vehicles
+Dalada Weediya End to KCC Road: 23 vehicles
+Dalada Weediya End to Left Lane: 13 vehicles
+Dalada Weediya End to Right Lane: 158 vehicles
