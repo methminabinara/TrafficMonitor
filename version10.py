@@ -15,7 +15,7 @@ model.to(device)
 
 # Run inference on the video file
 model.predict(
-    source=r"E:\Intern_FOE\TrafficMonitor\video.mp4",  # Input video
+    source=r"E:\Intern_FOE\TrafficMonitor\test.mp4",  # Input video
     save=True,  # Save the output video
     imgsz=320,  # Resize images to 320x320
     conf=0.5,  # Confidence threshold
