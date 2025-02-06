@@ -1,5 +1,5 @@
 Maligawa to Left Lane: 2 vehicles
-Maligawa to Right Lane: 1 vehicles
+Maligawa to Right Lane: 0 vehicles
 Maligawa to KCC Road: 0 vehicles
 Dalada to Left Lane: 1 vehicles
 Dalada to Right Lane: 0 vehicles
