@@ -8,11 +8,11 @@ import supervision as sv
 model = YOLO('yolov8n.pt')
 
 # Updated Line coordinates
-maligawa_line_start, maligawa_line_end = (300, 750), (300, 1500)  # Entrance 1
-dalada_line_start, dalada_line_end = (2300, 720), (2300, 1500)  # Entrance 2
-left_lane_line_start, left_lane_line_end = (1100, 500), (1350, 500)  # Exit 1
-right_lane_start, right_lane_end = (1360, 470), (1550, 470)  # Exit 2
-kcc_road_start, kcc_road_end = (1700, 550), (1990, 550)  # Exit 3
+maligawa_line_start, maligawa_line_end = sv.Point(300, 750), sv.Point(300, 1500)  # Entrance 1
+dalada_line_start, dalada_line_end = sv.Point(2300, 720), sv.Point(2300, 1500)  # Entrance 2
+left_lane_line_start, left_lane_line_end = sv.Point(1100, 500), sv.Point(1350, 500)  # Exit 1
+right_lane_start, right_lane_end = sv.Point(1360, 470), sv.Point(1550, 470)  # Exit 2
+kcc_road_start, kcc_road_end = sv.Point(1700, 550), sv.Point(1990, 550)  # Exit 3
 
 # Track vehicle paths
 vehicle_paths = defaultdict(lambda: {"entry": None, "exit": None, "counted": False})
@@ -41,11 +41,17 @@ fps = int(cap.get(cv2.CAP_PROP_FPS))
 # Video writer to save output
 out = cv2.VideoWriter("output_video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), fps, (frame_width, frame_height))
 
+# Store the track history
+track_history = defaultdict(lambda: [])
+
+# Create a dictionary to keep track of objects that have crossed the lines
+crossed_objects = defaultdict(lambda: {"entry": None, "exit": None})
+
 # Process video with frame-by-frame streaming
-results = model.track(source=video_path, conf=0.3, iou=0.5, save=False, tracker="bytetrack.yaml", stream=True)
+results = model.track(source=video_path, conf=0.3, iou=0.5, save=False, tracker="bytetrack.yaml", stream=True, persist=True)
 
 frame_count = 0
-MAX_FRAMES = 500  # Process only first 500 frames for testing
+MAX_FRAMES = 1500  # Process only first 500 frames for testing
 
 # Iterate through frames
 for result in results:
@@ -66,35 +72,41 @@ for result in results:
             cv2.rectangle(frame, (int(x - w / 2), int(y - h / 2)), (int(x + w / 2), (int(y + h / 2))), (0, 255, 255), 3)
             cv2.putText(frame, f"ID: {track_id}", (int(x - w / 2), int(y - h / 2) - 15), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 3)
 
+            # Track history
+            track = track_history[track_id]
+            track.append((float(cx), float(cy)))  # x, y center point
+            if len(track) > 30:  # retain 30 tracks for 30 frames
+                track.pop(0)
+
             # Check if vehicle crosses an entry line
-            if vehicle_paths[track_id]["entry"] is None:
-                if maligawa_line_start[0] - 10 <= cx <= maligawa_line_start[0] + 10 and maligawa_line_start[1] <= cy <= maligawa_line_end[1]:
-                    vehicle_paths[track_id]["entry"] = "Maligawa"
-                elif dalada_line_start[0] - 10 <= cx <= dalada_line_start[0] + 10 and dalada_line_start[1] <= cy <= dalada_line_end[1]:
-                    vehicle_paths[track_id]["entry"] = "Dalada"
+            if crossed_objects[track_id]["entry"] is None:
+                if maligawa_line_start.x - 10 <= cx <= maligawa_line_start.x + 10 and maligawa_line_start.y <= cy <= maligawa_line_end.y:
+                    crossed_objects[track_id]["entry"] = "Maligawa"
+                elif dalada_line_start.x - 10 <= cx <= dalada_line_start.x + 10 and dalada_line_start.y <= cy <= dalada_line_end.y:
+                    crossed_objects[track_id]["entry"] = "Dalada"
 
             # Check if vehicle crosses an exit line
-            if vehicle_paths[track_id]["entry"] is not None and vehicle_paths[track_id]["exit"] is None:
-                if left_lane_line_start[1] - 10 <= cy <= left_lane_line_end[1] + 10 and left_lane_line_start[0] <= cx <= left_lane_line_end[0]:
-                    vehicle_paths[track_id]["exit"] = "Left Lane"
-                elif right_lane_start[1] - 10 <= cy <= right_lane_end[1] + 10 and right_lane_start[0] <= cx <= right_lane_end[0]:
-                    vehicle_paths[track_id]["exit"] = "Right Lane"
-                elif kcc_road_start[1] - 10 <= cy <= kcc_road_end[1] + 10 and kcc_road_start[0] <= cx <= kcc_road_end[0]:
-                    vehicle_paths[track_id]["exit"] = "KCC Road"
+            if crossed_objects[track_id]["entry"] is not None and crossed_objects[track_id]["exit"] is None:
+                if left_lane_line_start.y - 10 <= cy <= left_lane_line_end.y + 10 and left_lane_line_start.x <= cx <= left_lane_line_end.x:
+                    crossed_objects[track_id]["exit"] = "Left Lane"
+                elif right_lane_start.y - 10 <= cy <= right_lane_end.y + 10 and right_lane_start.x <= cx <= right_lane_end.x:
+                    crossed_objects[track_id]["exit"] = "Right Lane"
+                elif kcc_road_start.y - 10 <= cy <= kcc_road_end.y + 10 and kcc_road_start.x <= cx <= kcc_road_end.x:
+                    crossed_objects[track_id]["exit"] = "KCC Road"
 
             # If both entry and exit are detected and not counted yet
-            if vehicle_paths[track_id]["entry"] and vehicle_paths[track_id]["exit"] and not vehicle_paths[track_id]["counted"]:
-                route_key = f"{vehicle_paths[track_id]['entry']} to {vehicle_paths[track_id]['exit']}"
+            if crossed_objects[track_id]["entry"] and crossed_objects[track_id]["exit"] and not vehicle_paths[track_id]["counted"]:
+                route_key = f"{crossed_objects[track_id]['entry']} to {crossed_objects[track_id]['exit']}"
                 if route_key in route_counts:
                     route_counts[route_key] += 1
                 vehicle_paths[track_id]["counted"] = True  # Mark as counted
 
     # Draw entry and exit lines on the frame
-    cv2.line(frame, maligawa_line_start, maligawa_line_end, (255, 0, 0), 5)  # Blue
-    cv2.line(frame, dalada_line_start, dalada_line_end, (0, 255, 0), 5)  # Green
-    cv2.line(frame, left_lane_line_start, left_lane_line_end, (0, 0, 255), 5)  # Red
-    cv2.line(frame, right_lane_start, right_lane_end, (128, 0, 128), 5)  # Purple
-    cv2.line(frame, kcc_road_start, kcc_road_end, (255, 255, 0), 5)  # Cyan
+    cv2.line(frame, (maligawa_line_start.x, maligawa_line_start.y), (maligawa_line_end.x, maligawa_line_end.y), (255, 0, 0), 5)  # Blue
+    cv2.line(frame, (dalada_line_start.x, dalada_line_start.y), (dalada_line_end.x, dalada_line_end.y), (0, 255, 0), 5)  # Green
+    cv2.line(frame, (left_lane_line_start.x, left_lane_line_start.y), (left_lane_line_end.x, left_lane_line_end.y), (0, 0, 255), 5)  # Red
+    cv2.line(frame, (right_lane_start.x, right_lane_start.y), (right_lane_end.x, right_lane_end.y), (128, 0, 128), 5)  # Purple
+    cv2.line(frame, (kcc_road_start.x, kcc_road_start.y), (kcc_road_end.x, kcc_road_end.y), (255, 255, 0), 5)  # Cyan
 
     # Display counts on the video
     cv2.rectangle(frame, (10, 10), (300, 220), (0, 0, 0), -1)
