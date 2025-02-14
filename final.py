@@ -7,6 +7,10 @@ import supervision as sv
 # Load YOLOv8 model
 model = YOLO('yolov8n.pt')
 
+# Define vehicle classes in COCO dataset
+# 2: car, 3: motorcycle, 5: bus, 7: truck, 8: boat
+VEHICLE_CLASSES = [2, 3, 5, 7, 8]
+
 # Updated Line coordinates
 maligawa_line_start, maligawa_line_end = sv.Point(300, 750), sv.Point(300, 1500)  # Entrance 1
 dalada_line_start, dalada_line_end = sv.Point(2300, 720), sv.Point(2300, 1500)  # Entrance 2
@@ -51,7 +55,7 @@ crossed_objects = defaultdict(lambda: {"entry": None, "exit": None})
 results = model.track(source=video_path, conf=0.3, iou=0.5, save=False, tracker="bytetrack.yaml", stream=True, persist=True)
 
 frame_count = 0
-MAX_FRAMES = 1500  # Process only first 500 frames for testing
+MAX_FRAMES = 500  # Process only first 500 frames for testing
 
 # Iterate through frames
 for result in results:
@@ -63,8 +67,18 @@ for result in results:
     if result.boxes is not None:
         boxes = result.boxes.xywh.cpu().numpy()  # Get bounding boxes in xywh format
         track_ids = result.boxes.id.int().cpu().tolist()  # Get track IDs
-
-        for box, track_id in zip(boxes, track_ids):
+        classes = result.boxes.cls.cpu().numpy().astype(int)  # Get class indices
+        
+        # Filter for vehicle classes only
+        vehicle_indices = [i for i, cls in enumerate(classes) if cls in VEHICLE_CLASSES]
+        
+        for i in vehicle_indices:
+            if i >= len(boxes) or i >= len(track_ids):
+                continue  # Skip if index is out of range
+                
+            box = boxes[i]
+            track_id = track_ids[i]
+            
             x, y, w, h = box  # Bounding box coordinates
             cx, cy = int(x), int(y)  # Center point of vehicle
 
