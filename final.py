@@ -3,9 +3,20 @@ import os
 from ultralytics import YOLO
 from collections import defaultdict
 import supervision as sv
+import torch
+import numpy as np
 
-# Load YOLOv8 model
-model = YOLO('yolov8n.pt')
+# Check for GPU availability
+print(f"CUDA Available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    device = torch.device("cuda:0")
+    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+else:
+    device = torch.device("cpu")
+    print("Using CPU")
+
+# Load YOLOv8 model with specified device
+model = YOLO('yolov8n.pt').to(device)
 
 # Define vehicle classes in COCO dataset
 # 2: car, 3: motorcycle, 5: bus, 7: truck, 8: boat
@@ -48,72 +59,93 @@ out = cv2.VideoWriter("output_video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), fps, 
 # Store the track history
 track_history = defaultdict(lambda: [])
 
+# Store the last known positions to help with consistent tracking
+last_positions = {}
+
 # Create a dictionary to keep track of objects that have crossed the lines
 crossed_objects = defaultdict(lambda: {"entry": None, "exit": None})
 
-# Process video with frame-by-frame streaming
-results = model.track(source=video_path, conf=0.3, iou=0.5, save=False, tracker="bytetrack.yaml", stream=True, persist=True)
+# Improved tracking parameters
+results = model.track(
+    source=video_path,
+    conf=0.25,  # Slightly lower confidence threshold
+    iou=0.45,   # Adjusted IOU threshold
+    persist=True,  # Maintain tracks even if object disappears briefly
+    tracker="bytetrack.yaml",
+    stream=True,
+    show=False,
+    device=device
+)
 
 frame_count = 0
-MAX_FRAMES = 500  # Process only first 500 frames for testing
+MAX_FRAMES = 1000  # Process only first 1000 frames for testing
 
 # Iterate through frames
 for result in results:
     if frame_count >= MAX_FRAMES:
-        break  # Stop after 500 frames
+        break  # Stop after specified number of frames
 
     frame = result.orig_img  # Get the original frame
 
-    if result.boxes is not None:
+    if result.boxes is not None and len(result.boxes) > 0:
         boxes = result.boxes.xywh.cpu().numpy()  # Get bounding boxes in xywh format
-        track_ids = result.boxes.id.int().cpu().tolist()  # Get track IDs
-        classes = result.boxes.cls.cpu().numpy().astype(int)  # Get class indices
         
-        # Filter for vehicle classes only
-        vehicle_indices = [i for i, cls in enumerate(classes) if cls in VEHICLE_CLASSES]
-        
-        for i in vehicle_indices:
-            if i >= len(boxes) or i >= len(track_ids):
-                continue  # Skip if index is out of range
-                
-            box = boxes[i]
-            track_id = track_ids[i]
+        if result.boxes.id is not None:
+            track_ids = result.boxes.id.int().cpu().tolist()  # Get track IDs
+            classes = result.boxes.cls.cpu().numpy().astype(int)  # Get class indices
             
-            x, y, w, h = box  # Bounding box coordinates
-            cx, cy = int(x), int(y)  # Center point of vehicle
+            # Filter for vehicle classes only
+            vehicle_indices = [i for i, cls in enumerate(classes) if cls in VEHICLE_CLASSES]
+            
+            for i in vehicle_indices:
+                if i >= len(boxes) or i >= len(track_ids):
+                    continue  # Skip if index is out of range
+                    
+                box = boxes[i]
+                track_id = track_ids[i]
+                
+                x, y, w, h = box  # Bounding box coordinates
+                cx, cy = int(x), int(y)  # Center point of vehicle
 
-            # Draw bounding box and larger ID on frame
-            cv2.rectangle(frame, (int(x - w / 2), int(y - h / 2)), (int(x + w / 2), (int(y + h / 2))), (0, 255, 255), 3)
-            cv2.putText(frame, f"ID: {track_id}", (int(x - w / 2), int(y - h / 2) - 15), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 3)
+                # Store this position as the last known position
+                last_positions[track_id] = (cx, cy)
 
-            # Track history
-            track = track_history[track_id]
-            track.append((float(cx), float(cy)))  # x, y center point
-            if len(track) > 30:  # retain 30 tracks for 30 frames
-                track.pop(0)
+                # Draw bounding box and larger ID on frame
+                cv2.rectangle(frame, (int(x - w / 2), int(y - h / 2)), (int(x + w / 2), (int(y + h / 2))), (0, 255, 255), 3)
+                cv2.putText(frame, f"ID: {track_id}", (int(x - w / 2), int(y - h / 2) - 15), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 3)
 
-            # Check if vehicle crosses an entry line
-            if crossed_objects[track_id]["entry"] is None:
-                if maligawa_line_start.x - 10 <= cx <= maligawa_line_start.x + 10 and maligawa_line_start.y <= cy <= maligawa_line_end.y:
-                    crossed_objects[track_id]["entry"] = "Maligawa"
-                elif dalada_line_start.x - 10 <= cx <= dalada_line_start.x + 10 and dalada_line_start.y <= cy <= dalada_line_end.y:
-                    crossed_objects[track_id]["entry"] = "Dalada"
+                # Track history
+                track = track_history[track_id]
+                track.append((float(cx), float(cy)))  # x, y center point
+                if len(track) > 30:  # retain 30 tracks for 30 frames
+                    track.pop(0)
 
-            # Check if vehicle crosses an exit line
-            if crossed_objects[track_id]["entry"] is not None and crossed_objects[track_id]["exit"] is None:
-                if left_lane_line_start.y - 10 <= cy <= left_lane_line_end.y + 10 and left_lane_line_start.x <= cx <= left_lane_line_end.x:
-                    crossed_objects[track_id]["exit"] = "Left Lane"
-                elif right_lane_start.y - 10 <= cy <= right_lane_end.y + 10 and right_lane_start.x <= cx <= right_lane_end.x:
-                    crossed_objects[track_id]["exit"] = "Right Lane"
-                elif kcc_road_start.y - 10 <= cy <= kcc_road_end.y + 10 and kcc_road_start.x <= cx <= kcc_road_end.x:
-                    crossed_objects[track_id]["exit"] = "KCC Road"
+                # Draw track
+                points = np.array(track, dtype=np.int32).reshape((-1, 1, 2))
+                cv2.polylines(frame, [points], False, (0, 255, 255), 2)
 
-            # If both entry and exit are detected and not counted yet
-            if crossed_objects[track_id]["entry"] and crossed_objects[track_id]["exit"] and not vehicle_paths[track_id]["counted"]:
-                route_key = f"{crossed_objects[track_id]['entry']} to {crossed_objects[track_id]['exit']}"
-                if route_key in route_counts:
-                    route_counts[route_key] += 1
-                vehicle_paths[track_id]["counted"] = True  # Mark as counted
+                # Check if vehicle crosses an entry line
+                if crossed_objects[track_id]["entry"] is None:
+                    if maligawa_line_start.x - 10 <= cx <= maligawa_line_start.x + 10 and maligawa_line_start.y <= cy <= maligawa_line_end.y:
+                        crossed_objects[track_id]["entry"] = "Maligawa"
+                    elif dalada_line_start.x - 10 <= cx <= dalada_line_start.x + 10 and dalada_line_start.y <= cy <= dalada_line_end.y:
+                        crossed_objects[track_id]["entry"] = "Dalada"
+
+                # Check if vehicle crosses an exit line
+                if crossed_objects[track_id]["entry"] is not None and crossed_objects[track_id]["exit"] is None:
+                    if left_lane_line_start.y - 10 <= cy <= left_lane_line_end.y + 10 and left_lane_line_start.x <= cx <= left_lane_line_end.x:
+                        crossed_objects[track_id]["exit"] = "Left Lane"
+                    elif right_lane_start.y - 10 <= cy <= right_lane_end.y + 10 and right_lane_start.x <= cx <= right_lane_end.x:
+                        crossed_objects[track_id]["exit"] = "Right Lane"
+                    elif kcc_road_start.y - 10 <= cy <= kcc_road_end.y + 10 and kcc_road_start.x <= cx <= kcc_road_end.x:
+                        crossed_objects[track_id]["exit"] = "KCC Road"
+
+                # If both entry and exit are detected and not counted yet
+                if crossed_objects[track_id]["entry"] and crossed_objects[track_id]["exit"] and not vehicle_paths[track_id]["counted"]:
+                    route_key = f"{crossed_objects[track_id]['entry']} to {crossed_objects[track_id]['exit']}"
+                    if route_key in route_counts:
+                        route_counts[route_key] += 1
+                    vehicle_paths[track_id]["counted"] = True  # Mark as counted
 
     # Draw entry and exit lines on the frame
     cv2.line(frame, (maligawa_line_start.x, maligawa_line_start.y), (maligawa_line_end.x, maligawa_line_end.y), (255, 0, 0), 5)  # Blue
