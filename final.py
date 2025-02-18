@@ -25,8 +25,8 @@ VEHICLE_CLASSES = [2, 3, 5, 7, 8]
 # Updated Line coordinates
 maligawa_line_start, maligawa_line_end = sv.Point(300, 750), sv.Point(300, 1500)  # Entrance 1
 dalada_line_start, dalada_line_end = sv.Point(2300, 720), sv.Point(2300, 1500)  # Entrance 2
-left_lane_line_start, left_lane_line_end = sv.Point(1100, 480), sv.Point(1350, 480)  # Exit 1
-right_lane_start, right_lane_end = sv.Point(1360, 450), sv.Point(1550, 450)  # Exit 2
+left_lane_line_start, left_lane_line_end = sv.Point(1100, 460), sv.Point(1350, 460)  # Exit 1
+right_lane_start, right_lane_end = sv.Point(1360, 460), sv.Point(1550, 460)  # Exit 2
 kcc_road_start, kcc_road_end = sv.Point(1700, 550), sv.Point(1990, 550)  # Exit 3
 
 # Track vehicle paths
