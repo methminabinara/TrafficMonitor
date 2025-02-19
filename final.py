@@ -68,9 +68,9 @@ crossed_objects = defaultdict(lambda: {"entry": None, "exit": None})
 # Improved tracking parameters
 results = model.track(
     source=video_path,
-    conf=0.25,  # Slightly lower confidence threshold
-    iou=0.45,   # Adjusted IOU threshold
-    persist=True,  # Maintain tracks even if object disappears briefly
+    conf=0.2,
+    iou=0.4,
+    persist=True,
     tracker="bytetrack.yaml",
     stream=True,
     show=False,
