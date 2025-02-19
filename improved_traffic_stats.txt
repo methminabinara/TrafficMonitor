@@ -1,0 +1,20 @@
+===== TRAFFIC FLOW STATISTICS =====
+
+Route Counts:
+Maligawa to Left Lane: 69 vehicles
+Maligawa to Right Lane: 43 vehicles
+Maligawa to KCC Road: 10 vehicles
+Dalada to Left Lane: 21 vehicles
+Dalada to Right Lane: 30 vehicles
+Dalada to KCC Road: 32 vehicles
+
+Vehicles by Entry Point:
+Maligawa: 122 vehicles
+Dalada: 83 vehicles
+
+Vehicles by Exit Point:
+Left Lane: 90 vehicles
+Right Lane: 73 vehicles
+KCC Road: 42 vehicles
+
+Total Vehicles Tracked: 205
