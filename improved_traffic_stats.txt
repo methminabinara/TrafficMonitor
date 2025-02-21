@@ -1,20 +1,97 @@
 ===== TRAFFIC FLOW STATISTICS =====
 
-Route Counts:
-Maligawa to Left Lane: 69 vehicles
-Maligawa to Right Lane: 43 vehicles
-Maligawa to KCC Road: 10 vehicles
-Dalada Weediya to Left Lane: 21 vehicles
-Dalada Weediya to Right Lane: 30 vehicles
-Dalada Weediya to KCC Road: 32 vehicles
+VEHICLE TYPE SUMMARY
+====================
+Cars: 91 vehicles
+Motorcycles: 62 vehicles
+Buss: 21 vehicles
+Trucks: 31 vehicles
 
-Vehicles by Entry Point:
-Maligawa: 122 vehicles
-Dalada Weediya: 83 vehicles
+Total Vehicles: 205
 
-Vehicles by Exit Point:
-Left Lane: 90 vehicles
-Right Lane: 73 vehicles
-KCC Road: 42 vehicles
+===========================
 
-Total Vehicles Tracked: 205
+DETAILED ROUTE STATISTICS
+========================
+
+Route: Maligawa to Left Lane - Total: 69 vehicles
+Vehicle Types:
+  - Cars: 36 (52.2%)
+  - Motorcycles: 17 (24.6%)
+  - Buss: 5 (7.2%)
+  - Trucks: 11 (15.9%)
+
+Route: Maligawa to Right Lane - Total: 43 vehicles
+Vehicle Types:
+  - Cars: 26 (60.5%)
+  - Motorcycles: 5 (11.6%)
+  - Buss: 6 (14.0%)
+  - Trucks: 6 (14.0%)
+
+Route: Maligawa to KCC Road - Total: 10 vehicles
+Vehicle Types:
+  - Cars: 4 (40.0%)
+  - Motorcycles: 4 (40.0%)
+  - Buss: 2 (20.0%)
+
+Route: Dalada Weediya to Left Lane - Total: 21 vehicles
+Vehicle Types:
+  - Cars: 9 (42.9%)
+  - Motorcycles: 2 (9.5%)
+  - Buss: 4 (19.0%)
+  - Trucks: 6 (28.6%)
+
+Route: Dalada Weediya to Right Lane - Total: 30 vehicles
+Vehicle Types:
+  - Cars: 10 (33.3%)
+  - Motorcycles: 16 (53.3%)
+  - Trucks: 4 (13.3%)
+
+Route: Dalada Weediya to KCC Road - Total: 32 vehicles
+Vehicle Types:
+  - Cars: 6 (18.8%)
+  - Motorcycles: 18 (56.2%)
+  - Buss: 4 (12.5%)
+  - Trucks: 4 (12.5%)
+
+TRAFFIC BY ENTRY POINT
+=====================
+
+Entry Point: Maligawa - Total: 122 vehicles
+Vehicle Types:
+  - Cars: 66 (54.1%)
+  - Motorcycles: 26 (21.3%)
+  - Buss: 13 (10.7%)
+  - Trucks: 17 (13.9%)
+
+Entry Point: Dalada Weediya - Total: 83 vehicles
+Vehicle Types:
+  - Cars: 25 (30.1%)
+  - Motorcycles: 36 (43.4%)
+  - Buss: 8 (9.6%)
+  - Trucks: 14 (16.9%)
+
+TRAFFIC BY EXIT POINT
+====================
+
+Exit Point: Left Lane - Total: 90 vehicles
+Vehicle Types:
+  - Cars: 45 (50.0%)
+  - Motorcycles: 19 (21.1%)
+  - Buss: 9 (10.0%)
+  - Trucks: 17 (18.9%)
+
+Exit Point: Right Lane - Total: 73 vehicles
+Vehicle Types:
+  - Cars: 36 (49.3%)
+  - Motorcycles: 21 (28.8%)
+  - Buss: 6 (8.2%)
+  - Trucks: 10 (13.7%)
+
+Exit Point: KCC Road - Total: 42 vehicles
+Vehicle Types:
+  - Cars: 10 (23.8%)
+  - Motorcycles: 22 (52.4%)
+  - Buss: 6 (14.3%)
+  - Trucks: 4 (9.5%)
+
