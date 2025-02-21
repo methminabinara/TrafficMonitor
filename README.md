@@ -1,14 +1,3 @@
 ﻿# TrafficMonitor
 
-This AI-driven traffic monitoring system leverages computer vision and deep learning to accurately track and analyze vehicle movements at intersections. It is built on YOLOv8 for real-time vehicle detection and ByteTrack for robust multi-object tracking, enhanced with Kalman filtering for smoother trajectory estimation.
-
-The system identifies four vehicle types—cars, motorcycles, buses, and trucks—and continuously monitors their movement between two defined entry points ("Maligawa" and "Dalada Weediya") and three exit points ("Left Lane", "Right Lane", and "KCC Road"). By maintaining consistent vehicle identities across frames and effectively handling occlusions, it ensures reliable tracking, even in high-traffic scenarios.
-
-Key Features:
-✔ Advanced Tracking Logic – Predicts vehicle trajectories even when temporarily lost from view.
-✔ Dynamic Visualization – Annotates detected vehicles with color-coded bounding boxes based on type.
-✔ Comprehensive Traffic Statistics – Aggregates real-time data on vehicle counts, movement patterns, and route distributions.
-✔ Detailed Route Analysis – Captures full journey paths, enabling insights into traffic flow and congestion patterns.
-✔ Annotated Video Output & Reports – Generates video overlays and detailed analytics for further evaluation.
-
-This system provides a scalable and efficient solution for smart traffic management, helping urban planners, researchers, and policymakers optimize road infrastructure based on data-driven insights.
+This traffic monitoring system uses computer vision and deep learning to track and analyze vehicle movements at intersections. Built on YOLO v8 for detection and ByteTrack for tracking, enhanced with Kalman filtering for trajectory smoothing, it identifies four vehicle types (cars, motorcycles, buses, trucks) as they move between defined entry points ("Maligawa" and "Dalada Weediya") and exit points ("Left Lane", "Right Lane", and "KCC Road"). The system maintains vehicle identities across frames, handles occlusions, generates comprehensive traffic statistics by route and vehicle type, and produces both an annotated video output and a detailed analysis report. Notable features include robust tracking logic that can predict vehicle trajectories when temporarily lost from view, dynamic visualization with color-coded vehicle types, and detailed route analysis that captures complete vehicle journeys through the monitored area.
